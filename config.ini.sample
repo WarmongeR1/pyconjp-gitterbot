@@ -1,0 +1,4 @@
+[DEFAULT]
+# get access_token from gitter.im
+# see: https://developer.gitter.im/docs/authentication
+access_token = XXXXXXXX
