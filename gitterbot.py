@@ -1,11 +1,18 @@
 # -*- coding: utf-8 -*-
 
 import configparser
-import requests
 import json
+import time
+
+import requests
+import feedparser
+
+PYCONJP_BLOG_RSS = 'http://pyconjp.blogspot.com/feeds/posts/default?alt=rss'
 
 class Gitter:
-    """Gitter API class
+    """
+    Gitter API wrapper
+    URL: https://developer.gitter.im/docs/welcome
     """
     def __init__(self, token):
         """token: access_token
@@ -48,11 +55,35 @@ class Gitter:
 
         return r
 
+def get_recent_entry(limit):
+    """
+    get recent entry from PyCon JP Blog(http://pyconjp.blogspot.jp/)
+    limit: limit of receent entry(minutes)
+    """
+    d = feedparser.parse(PYCONJP_BLOG_RSS)
+    entry = d.entries[0]
+
+    published = time.mktime(d.entries[0].published_parsed)
+    now = time.time()
+    # alter 5 minutes
+    if now - published > 60 * limit:
+        entry = None
+    return d.feed.title, entry
+
+def main(token):
+    gitter = Gitter(token)
+
+    # send recent blog post(less than 5 minutes)
+    title, entry = get_recent_entry(5)
+    if entry:
+        message = '[blog post] [{title}: {entry.title}]({entry.link})'.format(title=title, entry=entry)
+    
+        gitter.send_message('pyconjp/pyconjp2015-ja', message)
+    
 if __name__ == '__main__':
-    # config.ini からパラメーターを取得
+    # get access_token from config.ini
     config = configparser.ConfigParser()
     config.read('config.ini')
     token = config['DEFAULT']['access_token']
 
-    gitter = Gitter(token)
-    gitter.send_message('pyconjp/pyconjp2015-ja', 'testメッセージ2 http://pycon.jp/')
+    main(token)
