@@ -65,7 +65,7 @@ def get_recent_entry(limit):
 
     published = time.mktime(d.entries[0].published_parsed)
     now = time.time()
-    # alter 5 minutes
+    # ater limit
     if now - published > 60 * limit:
         entry = None
     return d.feed.title, entry
