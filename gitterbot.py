@@ -2,12 +2,15 @@
 
 import configparser
 import json
-import time
 
 import requests
 import feedparser
 
+# RSS URL of PyCon JP Blog
 PYCONJP_BLOG_RSS = 'http://pyconjp.blogspot.com/feeds/posts/default?alt=rss'
+
+# file name for URLs of published blog entries
+PUBLISHED_URL_FILE = 'published_url.txt'
 
 class Gitter:
     """
@@ -55,30 +58,69 @@ class Gitter:
 
         return r
 
-def get_recent_entry(limit):
+def get_recent_entry(url_list):
     """
     get recent entry from PyCon JP Blog(http://pyconjp.blogspot.jp/)
-    limit: limit of receent entry(minutes)
+
+    :param int limit: limit of receent entry(minutes)
     """
+    target_entry = None
     d = feedparser.parse(PYCONJP_BLOG_RSS)
-    entry = d.entries[0]
+    for entry in d.entries[::-1]:
+        if entry.link not in url_list:
+            target_entry = entry
 
-    published = time.mktime(d.entries[0].published_parsed)
-    now = time.time()
-    # ater limit
-    if now - published > 60 * limit:
-        entry = None
-    return d.feed.title, entry
+    return d.feed.title, target_entry
 
+def get_published_url_list():
+    """
+    get published entries URL list from file
+    
+    :rtype: list
+    :return: url_list
+    """
+
+    url_list = []
+
+    try:
+        with open(PUBLISHED_URL_FILE) as f:
+            url_list = [x.rstrip() for x in f.readlines()]
+    except IOError:
+        pass
+    
+    return url_list
+    
+def add_published_url_list(url):
+    """
+    add URL to published entries URL list
+
+    :param str url: URL of blog entry
+    :rtype: list
+    :return: url_list
+    """
+
+    with open(PUBLISHED_URL_FILE, 'a') as f:
+        f.write(url + '\n')
+    
 def main(token):
+    """
+    main function
+
+    :param str token: gitter access_token
+    """
+
+    url_list = get_published_url_list()
+
     gitter = Gitter(token)
 
     # send recent blog post(less than 5 minutes)
-    title, entry = get_recent_entry(5)
+    title, entry = get_recent_entry(url_list)
     if entry:
         message = '[blog post] [{title}: {entry.title}]({entry.link})'.format(title=title, entry=entry)
     
-        gitter.send_message('pyconjp/pyconjp2015-ja', message)
+        #gitter.send_message('pyconjp/pyconjp2015-ja', message)
+        print(message)
+        add_published_url_list(entry.link)
     
 if __name__ == '__main__':
     # get access_token from config.ini
