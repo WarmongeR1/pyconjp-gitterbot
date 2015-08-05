@@ -113,13 +113,12 @@ def main(token):
 
     gitter = Gitter(token)
 
-    # send recent blog post(less than 5 minutes)
+    # send recent blog post
     title, entry = get_recent_entry(url_list)
     if entry:
         message = '[blog post] [{title}: {entry.title}]({entry.link})'.format(title=title, entry=entry)
     
-        #gitter.send_message('pyconjp/pyconjp2015-ja', message)
-        print(message)
+        gitter.send_message('pyconjp/pyconjp2015-ja', message)
         add_published_url_list(entry.link)
     
 if __name__ == '__main__':
