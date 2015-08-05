@@ -69,6 +69,7 @@ def get_recent_entry(url_list):
     for entry in d.entries[::-1]:
         if entry.link not in url_list:
             target_entry = entry
+            break
 
     return d.feed.title, target_entry
 
