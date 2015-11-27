@@ -1,6 +1,3 @@
-# pyconjp-gitterbot
-Gitter post bot for PyCon JP
-
 ## setting
 
 ```
